@@ -1,0 +1,51 @@
+---
+  run_name: [RUN_NAME:str]
+  ########################
+  # BIO processing parameters
+  ########################
+  # directory for annotated XML files
+  XML_dir: [XML_dir:str]
+  # directory for IO/BIO files
+  BIO_dir: [BIO_dir:str]
+  # mode, either IO or BIO
+  BIO_mode: [BIO_mode:str]
+  ########################
+  # Model fine-tune parameters
+  ########################
+  # development set file path
+  deve_id_file: [deve_id_path:str]
+  # ratio of validation set. Will be sampled from development set
+  valid_ratio: [ratio:float]
+  # Define entity labels and category numbers
+  label_map: 
+    label_0: category_0
+    label_1: category_1
+    label_2: category_2
+  # tokenizer path
+  tokenizer: [tokenizer:str]
+  # Word tokens to be included in a segment
+  word_token_length: [length:int]
+  # step of sliding window for training instance creation
+  slide_steps: [steps:int]
+  # wordpiece tokens to include in a training instance
+  wordpiece_token_length: [length:int]
+  # base NLP model file path
+  base_model: [model_path:str]
+  # learning rate
+  lr: [rate:float]
+  # n_ephoch
+  n_epochs: [N:int]
+  # batch_size
+  batch_size: [size:int]
+  # Output path
+  out_path: [path:str]
+  ########################
+  # Evaluation parameters
+  ########################
+  # test set file path
+  test_id_file: [eval_id_path:str]
+  # checkpoint path
+  checkpoint_dir: [checkpoint path:str]
+  # checkpoint filename to evaluate, or "best" to pull the checkpoint with min validation loss.
+  checkpoint: [checkpoint file:str]
+  

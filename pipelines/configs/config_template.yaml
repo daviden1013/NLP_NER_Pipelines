@@ -18,9 +18,9 @@
   valid_ratio: [ratio:float]
   # Define entity labels and category numbers
   label_map: 
-    label_0: category_0
-    label_1: category_1
-    label_2: category_2
+    O: 0
+    label_1: 1
+    label_2: 2
   # tokenizer path
   tokenizer: [tokenizer:str]
   # Word tokens to be included in a segment

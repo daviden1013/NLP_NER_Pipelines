@@ -112,4 +112,10 @@ $python Training_pipeline.py -c ./configs/configs_run_0.yaml
 $python Evaluation_pipeline.py -c ./configs/configs_run_0.yaml
 ```
 
-The **Prediction_pipeline** provides a coding template for production. The input should be a dictionary {document_id : text}. 
+The **Prediction_pipeline** provides a coding template for production. The input should be a dictionary:
+```
+{[document_id 0] : [text 0],
+[document_id 1] : [text 1],
+[document_id 2] : [text 2]
+...}
+```

@@ -184,16 +184,16 @@ We then run **Evaluation_pipeline**. An evlauation metrics is created.
 $python Evaluation_pipeline.py -c ./configs/configs_i2b2.yaml
 ```
 
-![image](https://user-images.githubusercontent.com/24928020/216153478-4e1c4324-310d-4ed3-912f-1eb19ee27451.png)
+![image](https://user-images.githubusercontent.com/24928020/216156979-f7266866-a83e-4018-b5ad-e9dc9927d00e.png)
+
 
 Once we have a model, we can save if with **scripts/save final model.py**, and run **Prediction_pipeline**:
 ```
 $python Prediction_pipeline.py -c ./configs/configs_i2b2.yaml
 ```
-The predicted entities are saved to the outfile firectory:
+The predicted entities are saved to the outfile directory:
 
-![image](https://user-images.githubusercontent.com/24928020/216155252-7352eb0a-8c34-464f-8a34-87e4ba291c66.png)
-
+![image](https://user-images.githubusercontent.com/24928020/216157323-7996d5c7-3d54-4da8-9bae-45bacc58ff16.png)
 
 
 

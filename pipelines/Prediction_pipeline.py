@@ -8,7 +8,7 @@ from transformers import BertTokenizer
 from transformers import AutoModelForTokenClassification
 import torch.optim as optim
 from modules.Training_utilities import BIO_feeder, NER_Dataset
-from modules.Prediction_utilities import Data_holder
+from modules.Prediction_utilities import Data_holder, NER_Predictor
 from datetime import datetime
 
 def main():
@@ -27,26 +27,33 @@ def main():
   pprint.pprint(config)
   print(datetime.now())
   """ Load docudments """
-  # Load documents into dict {docuemnt_id:text}
-  # doc_dict = 
-  print(f'Document loaded: {len(doc_dict)} documents')
-  print(datetime.now())
-  """ Load model """
-  # model = 
-  print('Model loaded')
+  doc_dict = {}
+  for file in os.listdir(config['predict_doc_dir']):
+    with open(os.path.join(config['predict_doc_dir'], file)) as f:
+      txt = f.read()
+    filename = file.replace('.txt', '')
+    doc_dict[filename] = txt
+
+  print(f'Documents loaded: {len(doc_dict)} documents')
   print(datetime.now())
   """ Make Data holder """
   label_map = config['label_map']
   holder = Data_holder(doc_dict, label_map)
-  tokenizer = BertTokenizer.from_pretrained(config['tokenizer'])
-
+  tokenizer = BertTokenizer.from_pretrained(config['predict_model'])
+  
+  """ Load model """
+  model = AutoModelForTokenClassification.from_pretrained(config['predict_model'], num_labels=len(label_map))
+  print('Model loaded')
+  print(datetime.now())
+  
   """ Make dataset """
   dataset = NER_Dataset(bios=holder.bio, 
                         tokenizer=tokenizer, 
                         label_map=label_map, 
                         word_seq_lenght=config['word_token_length'], 
                         step=config['word_token_length'],
-                        token_seq_length=config['wordpiece_token_length'])
+                        token_seq_length=config['wordpiece_token_length'],
+                        has_label=False)
       
   """ Prediction """
   predictor = NER_Predictor(model=model,
@@ -58,3 +65,9 @@ def main():
   
   """ Get predicted entity """
   entities = holder.Predict_to_entity(token_pred_df, mode=config['BIO_mode'])
+
+  """ Save """
+  entities.to_pickle(config['predict_outfile'])
+  
+if __name__ == '__main__':
+  main()

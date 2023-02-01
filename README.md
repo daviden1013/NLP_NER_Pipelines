@@ -177,7 +177,12 @@ Now we are ready to train models. Run **Training_pipeline**:
 ```
 $python Training_pipeline.py -c ./configs/configs_i2b2.yaml
 ```
-The checkpoint folder and log folder were created. We then run **Evaluation_pipeline**. An evlauation metrics is created.
+The checkpoint folder and log folder were created. 
+
+We then run **Evaluation_pipeline**. An evlauation metrics is created.
+```
+$python Evaluation_pipeline.py -c ./configs/configs_i2b2.yaml
+```
 
 ![image](https://user-images.githubusercontent.com/24928020/216153478-4e1c4324-310d-4ed3-912f-1eb19ee27451.png)
 

@@ -104,23 +104,13 @@ def main():
   toekn_gold_df = pd.concat(gold)
   entity_gold = Tokens_to_entities(token_df=toekn_gold_df, mode=config['BIO_mode'], 
                                    label_varname='label', n_level=len(label_map))
-  
-  """ Output entities """
-  evaluation = []
-  for k in config['label_map'].keys():
-    if k != 'O':
-      eva = evaluate_entity(k, entity_pred, entity_gold)
-      eva['ENTITY_TYPE'] = k
-      evaluation.append(eva)
-  
-  
+
+  """ Output evaluation """
   eval_dir = os.path.join(config['out_path'], 'evaluations', config['run_name'])
   if not os.path.isdir(eval_dir):
     os.makedirs(eval_dir)
     
-  evaluation = pd.DataFrame(evaluation)
-  evaluation = evaluation[['ENTITY_TYPE', 'PRECISION_EXACT', 'RECALL_EXACT', 'F1_EXACT', 
-                           'PRECISION_PARTIAL', 'RECALL_PARTIAL', 'F1_PARTIAL']]
+  evaluation = evaluate_entity(entity_pred, entity_gold)
   evaluation.to_csv(os.path.join(eval_dir, f"{config['run_name']} evaluation.csv"), index=False)
   
 

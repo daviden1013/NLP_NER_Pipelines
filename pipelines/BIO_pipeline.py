@@ -2,45 +2,88 @@
 import argparse
 from easydict import EasyDict
 import yaml
+from typing import Tuple
 import os
-import xml.etree.ElementTree as ET
-from modules.Training_utilities import XML_BIO_converter
+from modules.Training_utilities import BIO_converter
 from datetime import datetime
+from tqdm import tqdm
+import csv
 import pprint
 
-""" Define XML parsing method """
-class XML_BIO_LKW_converter(XML_BIO_converter):
-  def _parse_XML(self, xml_filename:str):
+""" Define annotation file parsing method """
+class BRAT_BIO_converter(BIO_converter):
+  def __init__(self, txt_dir:str, ann_dir:str, BIO_dir:str, mode:str):
     """
-    This method inputs a xml_filename with dir
-    outputs a text content. 
-    If has_tag == True, outputs text content + list of tags 4-tuple 
-    (tag_id, tag_name, start, end)
+    This class inputs a directory with annotation files, outputs BIOs
 
     Parameters
     ----------
-    xml_filename : str
-      xml filename with dir.
+    txt_dir: str
+      Directory of text files
+    ann_dir : str
+      Directory of annotation files
+    BIO_dir : str
+      Directory of BIO files 
+    mode : str
+      choice of {'BIO', 'IO'} for output
     """
-    tree = ET.parse(xml_filename)
-    root = tree.getroot()
-    text = root.find('TEXT').text
-    
-    tags = []
-    for tag in root.find('TAGS'):
-      if tag.tag == 'HIGHLIGHT':
-        continue
-      tag_id = tag.attrib['id']
-      tag_name = tag.tag
-      start_pos, end_pos = tag.attrib['spans'].split('~')
-      if tag_name in ['CONSULT_DATETIME', 'LKW']:
-        att_type = tag.attrib['Type'] 
-      elif tag_name in ['tPA', 'TRANSPORTATION']:
-        att_type = tag.attrib['Modality'] 
+    self.txt_dir = txt_dir
+    self.ann_dir = ann_dir
+    self.BIO_dir = BIO_dir
+    assert mode in {'BIO', 'IO'}, "mode must be one of {'BIO', 'IO'}"
+    self.mode = mode
+  
+  def parse_annotation(self, txt_filename:str, ann_filename:str) -> Tuple[str, list]:
+    with open(os.path.join(self.txt_dir, txt_filename), 'r') as f:
+      text = f.read()
         
-      tags.append((tag_id, f"{tag_name}_{att_type}", int(start_pos), int(end_pos)))
-    
-    return text, tags
+    ann_list = []
+    with open(os.path.join(self.ann_dir, ann_filename), 'r') as f:
+      lines = f.readlines()
+    for line in lines:
+      if line[0] == 'T':
+        l = line.split()
+        tag_id = l[0]
+        tag_name = l[1]
+        start = int(l[2])
+        i = 3
+        while True:
+          if ';' in l[i]:
+            i += 1
+          else:
+            end = int(l[i])
+            break
+            
+        ann_list.append((tag_id, tag_name, start, end))
+        
+    return text, ann_list
+  
+  
+  def pop_BIO(self):
+    """
+    This method iterate through annotation files and create BIO
+    """
+    txt_files = sorted([f for f in os.listdir(self.txt_dir) 
+                 if os.path.isfile(os.path.join(self.txt_dir, f)) and f[-4:] == '.txt'])
+    ann_files = sorted([f for f in os.listdir(self.ann_dir) 
+                 if os.path.isfile(os.path.join(self.ann_dir, f)) and f[-4:] == '.ann'])
+    loop = tqdm(zip(txt_files, ann_files), total=len(ann_files), leave=True)
+    for txt_file, ann_file in loop:
+      txt, ann = self.parse_annotation(txt_file, ann_file)
+      
+      if self.mode == 'BIO':
+        bio_list = self._get_BIO(txt, ann)
+        filename = ann_file.replace('.ann', '.bio')
+      else:
+        bio_list = self._get_IO(txt, ann)
+        filename = ann_file.replace('.ann', '.io')
+        
+      with open(os.path.join(self.BIO_dir, filename), 'w', newline='', encoding='utf-8') as file:
+        csv_out=csv.writer(file)
+        csv_out.writerow(['token','start','end','label'])
+        for row in bio_list:
+          csv_out.writerow(row)
+   
   
 """ Pipeline """
 def main():
@@ -57,7 +100,8 @@ def main():
   print('Config loaded:')
   pprint.pprint(config)
   print(datetime.now())
-  converter = XML_BIO_LKW_converter(xml_dir=config['XML_dir'],
+  converter = BRAT_BIO_converter(txt_dir=config['txt_dir'],
+                                 ann_dir=config['ann_dir'],
                                 BIO_dir=config['BIO_dir'],
                                 mode=config['BIO_mode'])
   

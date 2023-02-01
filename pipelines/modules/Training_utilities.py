@@ -5,7 +5,6 @@ import os
 import numpy as np
 import pandas as pd
 import string
-import xml.etree.ElementTree as ET
 import csv
 from transformers import BertTokenizer
 import torch
@@ -16,21 +15,21 @@ from modules.Utilities import word_tokenize
 from tqdm import tqdm
 
 
-class XML_BIO_converter:
-  def __init__(self, xml_dir:str, BIO_dir:str, mode:str):
+class BIO_converter:
+  def __init__(self, ann_dir:str, BIO_dir:str, mode:str):
     """
-    This class inputs a directory with XML files, outputs BIOs
+    This class inputs a directory with annotation files, outputs BIOs
 
     Parameters
     ----------
-    xml_dir : str
-      Directory of XML files
+    ann_dir : str
+      Directory of annotation files
     BIO_dir : str
       Directory of BIO files 
     mode : str
       choice of {'BIO', 'IO'} for output
     """
-    self.xml_dir = xml_dir
+    self.ann_dir = ann_dir
     self.BIO_dir = BIO_dir
     assert mode in {'BIO', 'IO'}, "mode must be one of {'BIO', 'IO'}"
     self.mode = mode
@@ -54,32 +53,33 @@ class XML_BIO_converter:
     
   
   @abc.abstractmethod
-  def _parse_XML(self, xml_filename:str) -> Tuple[str, list]:
+  def parse_annotation(self, ann_filename:str) -> Tuple[str, list]:
     """
-    This method inputs a xml_filename with dir
+    This method inputs a annotation filename with dir
     outputs text content + list of tags 4-tuple 
     (tag_id, tag_name, start, end)
 
     Parameters
     ----------
-    xml_filename : str
-      xml filename with dir.
+    ann_filename : str
+      annotation filename with dir.
     """
     return NotImplemented
   
 
-  def _get_BIO(self, xml_filename:str) -> List:
+  def _get_BIO(self, text:str, tags:List[Tuple[str, str, int, int]]) -> List[Tuple[str, str, int, int]]:
     """
-    This method inputs a xml filename + dir
+    This method inputs original text and a list of tags (tag_id, tag_name, start, end)
     outputs a BIO list
     it returns a list of 4-tuple (word, start, end, label)
 
     Parameters
     ----------
-    xml_filename : str
-      xml filename with dir.
+    text : str
+      Original text.
+    tags : list
+      list of 4-tuples (tag_id, tag_name, start, end)
     """
-    text, tags = self._parse_XML(xml_filename)
     tokens = self._tokenize(text)
     out = []
     begin = True
@@ -106,18 +106,19 @@ class XML_BIO_converter:
     return out
   
   
-  def _get_IO(self, xml_filename:str) -> List:
+  def _get_IO(self, text:str, tags:List[Tuple[str, str, int, int]]) -> List[Tuple[str, int, int, str]]:
     """
-    This method inputs a xml filename + dir
+    This method inputs original text and a list of tags (tag_id, tag_name, start, end)
     outputs a IO list
     it returns a list of 4-tuple (word, start, end, label)
 
     Parameters
     ----------
-    xml_filename : str
-      xml filename with dir.
+    text : str
+      Original text.
+    tags : list
+      list of 4-tuples (tag_id, tag_name, start, end)
     """
-    text, tags = self._parse_XML(xml_filename)
     tokens = self._tokenize(text)
     out = []
     for token in tokens:
@@ -130,27 +131,12 @@ class XML_BIO_converter:
 
     return out
   
-  
+  @abc.abstractmethod
   def pop_BIO(self):
     """
-    This method iterate through all xml files and output BIOs as csv format (.bio)
+    This method iterate through all annotation files and output BIOs as csv format (.bio)
     """
-    xml_files = [f for f in os.listdir(self.xml_dir) 
-                 if os.path.isfile(os.path.join(self.xml_dir, f)) and f[-4:] == '.xml']
-    loop = tqdm(xml_files, total=len(xml_files), leave=True)
-    for xml in loop:
-      if self.mode == 'BIO':
-        bio_list = self._get_BIO(os.path.join(self.xml_dir, xml))
-        filename = xml.replace('.xml', '.bio')
-      else:
-        bio_list = self._get_IO(os.path.join(self.xml_dir, xml))
-        filename = xml.replace('.xml', '.io')
-        
-      with open(os.path.join(self.BIO_dir, filename), 'w', newline='', encoding='utf-8') as file:
-        csv_out=csv.writer(file)
-        csv_out.writerow(['token','start','end','label'])
-        for row in bio_list:
-          csv_out.writerow(row)
+    return NotImplemented
 
 
 class BIO_feeder:
@@ -434,55 +420,29 @@ class NER_Trainer():
                             f'Epoch-{epoch}_trainloss-{train_loss:.4f}_validloss-{valid_loss:.4f}.pth'))
 
 
-def evaluate_entity(entity_type:str, pred:pd.DataFrame, gold:pd.DataFrame) -> Dict[str, float]:
+def evaluate_entity(pred:pd.DataFrame, gold:pd.DataFrame) -> pd.DataFrame:
   """ 
-  This function inputs an entity type to evaluate, and predicted entities and gold standard entities
-  Outputs a dictionary of exact and partial P, R, F1.
+  This function inputs predicted entities and gold standard entities
+  Outputs a dataframe of counts, exact and partial P, R, F1.
   """
   def F1(p, r):
     return 2*p*r/(p+r)
 
-  p = pred.loc[pred['pred']==entity_type]
-  g = gold.loc[gold['label']==entity_type]
-  """ Exact matching """
-  count = 0
-  for _, p_row in p.iterrows():
-    for _, g_row in g.iterrows():
-      if p_row['document_id'] == g_row['document_id'] and \
-        p_row['start'] == g_row['start'] and p_row['end'] == g_row['end']:
-        count += 1
-        break
-  precision_exact = count/p.shape[0] if p.shape[0] > 0 else float('nan')
-      
-  count = 0
-  for _, g_row in g.iterrows():
-    for _, p_row in p.iterrows():
-      if p_row['document_id'] == g_row['document_id'] and \
-        p_row['start'] == g_row['start'] and p_row['end'] == g_row['end']:
-        count += 1
-        break
-  recall_exact = count/g.shape[0] if g.shape[0] > 0 else float('nan')
+  df = pd.merge(pred, gold, left_on=['document_id', 'pred'], right_on=['document_id', 'label'], 
+                how='inner', suffixes=['_pred', '_gold'])
+  df['exact'] = (df['start_pred'] == df['start_gold']) & (df['end_pred'] == df['end_gold'])
+  df['partial'] = ~((df['end_pred'] < df['start_gold']) | (df['start_pred'] > df['end_gold']))
+  match = df.groupby('label').agg({'exact':'sum', 'partial':'sum'})
+  g_freq = gold['label'].value_counts().reset_index().rename(columns={'index':'label', 'label':'gold'})
+  p_freq = pred['pred'].value_counts().reset_index().rename(columns={'index':'label'})
   
-  """ Partial matching """
-  count = 0
-  for _, p_row in p.iterrows():
-    for _, g_row in g.iterrows():
-      if not(p_row['end'] < g_row['start'] or p_row['start'] > g_row['end']):
-        count += 1
-        break
-  precision_partial = count/p.shape[0] if p.shape[0] > 0 else float('nan')
-    
-  count = 0
-  for _, g_row in g.iterrows():
-    for _, p_row in p.iterrows():
-      if not(p_row['end'] < g_row['start'] or p_row['start'] > g_row['end']):
-        count += 1
-        break
-  recall_partial = count/g.shape[0] if g.shape[0] > 0 else float('nan')
-    
-  return {'PRECISION_EXACT':precision_exact, 
-          'RECALL_EXACT':recall_exact, 
-          'F1_EXACT':F1(precision_exact, recall_exact),
-          'PRECISION_PARTIAL':precision_partial, 
-          'RECALL_PARTIAL':recall_partial,
-          'F1_PARTIAL':F1(precision_partial, recall_partial)}
+  summary = pd.merge(g_freq, p_freq, on='label', how='left')
+  summary = pd.merge(summary, match, on='label', how='left')
+  
+  summary['precision_exact'] = summary['exact']/summary['pred']
+  summary['precision_partial'] = summary['partial']/summary['pred']
+  summary['recall_exact'] = summary['exact']/summary['gold']
+  summary['recall_partial'] = summary['partial']/summary['gold']
+  summary['F1_exact'] = summary.apply(lambda x:F1(x.precision_exact, x.recall_exact), axis=1)
+  summary['F1_partial'] = summary.apply(lambda x:F1(x.precision_partial, x.recall_partial), axis=1)
+  return summary

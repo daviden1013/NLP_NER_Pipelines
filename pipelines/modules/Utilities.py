@@ -67,6 +67,7 @@ def Tokens_to_entities(token_df: pd.DataFrame, mode:str, label_varname:str, n_le
       agg(agg_vars)
   
     entity = entity.loc[entity[label_varname] != 'O']
+    entity[label_varname] = entity[label_varname].str.replace('B-', '').str.replace('I-', '')
     # confident = prob / baseline prob
     entity['conf'] = entity['prob'] * n_level
     return entity.reindex(['document_id', 'start', 'end', label_varname, 'prob', 'conf'], axis=1)
@@ -76,4 +77,5 @@ def Tokens_to_entities(token_df: pd.DataFrame, mode:str, label_varname:str, n_le
       agg(agg_vars)
   
     entity = entity.loc[entity[label_varname] != 'O']
+    entity[label_varname] = entity[label_varname].str.replace('B-', '').str.replace('I-', '')
     return entity.reindex(['document_id', 'start', 'end', label_varname], axis=1)

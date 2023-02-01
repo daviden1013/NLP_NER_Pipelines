@@ -1,13 +1,13 @@
 # NLP_NER_Pipelines
-This is a general NER toolkit for BERT model training, evaluation, and prediction. The **BIO_pipeline** processes annotated corpora (with labels) and creates word-token level documents (.io or .bio) for training and evaluation. A split of development set and evaluation set should be considered. The **Training_pipeline** inputs the word-tokens (with labels) from development set, and train a BERT-familiy model. Checkpoints are saved to disk. The **Evaluation_pipeline** use a specified checkpoint to predict on the evaluation set, and perform entity-level evaluation. Both exact matching and partial matching with precision, recall, and F1 are reported. Once a final/ production NLP model is made and saved to disk, the **Prediction_pipeline** use it to do prediction. 
+This is a general NER toolkit for BERT model training, evaluation, and prediction. The **BIO_pipeline** processes annotated corpora (with labels) and creates word-token level documents (.io or .bio) for training and evaluation. A split of development set and evaluation set should be considered. The **Training_pipeline** inputs the word-tokens (with labels) from development set, and train a BERT-familiy model. Checkpoints are saved to disk. The **Evaluation_pipeline** use a specified checkpoint to predict on the evaluation set, and perform entity-level evaluation. Both exact matching and partial matching with precision, recall, and F1 are reported. Once a final/ production NLP model is made and saved to disk, the **Prediction_pipeline** use it to predict. 
 
 Framework: **PyTorch**, **Transformers**
 
-Annotation tool: **MAE**
+Annotation tool: **BRAT**
 
 ![alt text](https://github.com/daviden1013/NLP_NER_Pipelines/blob/main/Pipelines%20diagram.png)
 
-## Demo
+## Getting started
 Prepare project file system. We create folders as below (all modules under "pipelines" can be cloned from this repository):
 ```
 Project folder
@@ -33,14 +33,12 @@ The parameters for word-token (IO/BIO) creation are:
 ########################
 # BIO processing parameters
 ########################
-# directory for annotated XML files
-XML_dir: [XML_dir:str]
-# directory for IO/BIO files
-BIO_dir: [BIO_dir:str]
-# mode, either IO or BIO
-BIO_mode: [BIO_mode:str]
+txt_dir: ~\ADE medication NER\data\text
+ann_dir: ~\ADE medication NER\data\ann
+BIO_dir: ~\ADE medication NER\BIO
+BIO_mode: BIO
 ```
-The output from MAE annotation tool is in .xml format. The XML_dir specifies a directory with all the .xml files. If different annotation tool was used, modify the children class in BIO_pipeline. The BIO_dir specifies the output directory for .io or .bio files. BIO_mode specifies whether the labels will include "B-" and "I-" (BIO) or without (IO). When 1) training data is sufficient or 2) same type of entities could show up back-to-back, BIO is suggested. Otherwise IO could be more efficient (reduces the categories for prediction by half). Once executed, the **BIO_pipeline** creates .io or .bio files in BIO_dir. 
+The output from BRAT annotation tool is .ann format. If different annotation tool was used, modify the children class in BIO_pipeline. The BIO_dir specifies the output directory for .io or .bio files. BIO_mode specifies whether the labels will include "B-" and "I-" (BIO) or without (IO). When 1) training data is sufficient or 2) same type of entities could show up back-to-back, BIO is suggested. Otherwise IO could be more efficient (reduces the categories for prediction by half). Once executed, the **BIO_pipeline** creates .io or .bio files in BIO_dir. 
 
 The parameters for NLP model fine-tuning are:
 ```
@@ -119,3 +117,35 @@ The **Prediction_pipeline** provides a coding template for production. The input
 [document_id 2] : [text 2]
 ...}
 ```
+The parameters in config are:
+```
+########################
+# Prediction parameters
+########################
+# directory with documents to predict
+predict_doc_dir: ~\ADE medication NER\data\text
+# predict model
+predict_model: ~\ADE medication NER\Production Model
+# Output file
+predict_outfile: ~\ADE medication NER\prediction.pickle
+```
+The output is a DataFrame with document_id, entity, start, end, pred, prob, conf. pred is the predicted entity type, prob is the average probability of all tokens in the entity, conf is the prob/baseline probability. Where baseline probability is the probability of randomly guess an entity type (1/N_entity_types).
+
+## Demo
+We demo with 2018 i2b2 Adverse Drug Events & Medication Extraction (https://n2c2.dbmi.hms.harvard.edu/2018-challenge) datasets. The dataset include 505 annotated notes (303 training, 202 testing):
+
+| Entity type  | Total | Training set | Test set  |
+| -------------| ------|--------- |--------|
+|      *Drug*    | 26,800| 16,225   | 10,575 |
+|     *Strength* | 10,921| 6,691    | 4,230  |
+|     *Form*     | 11,010| 6,651    | 4,359  |
+|     *Dosage*   | 6,902 | 4,221    | 2,681  |
+|   *Frequency*  | 10,293| 6,281    | 4,012  |
+|     *Route*    | 8,989 | 5,476    | 3,513  |
+|   *Duration*   | 970   | 592      | 378    |
+|    *Reason*    | 6,400 | 3,855    | 2,545  |
+|      *ADE*     | 1,584 | 959      | 625    |
+|    **Total**     | 83,869| 50,951   | 32,918 |
+
+
+

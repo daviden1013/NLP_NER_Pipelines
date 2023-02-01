@@ -147,5 +147,48 @@ We demo with 2018 i2b2 Adverse Drug Events & Medication Extraction (https://n2c2
 |      *ADE*     | 1,584 | 959      | 625    |
 |    **Total**     | 83,869| 50,951   | 32,918 |
 
+We downloaded the dataset and distributed into the following folders:
+```
+ADE medication NER
+  - data
+    - ann
+      - 100035.ann
+      - 100039.ann
+      ...
+    - text
+      - 100035.txt
+      - 100039.txt
+      ...
+```
+We use **BIO_pipeline** to create BIO files:
+
+```
+$python BIO_pipeline.py -c ./configs/configs_i2b2.yaml
+```
+Now we have word-token files (with labels) in BIO folder: 
+```
+ADE medication NER
+  - BIO
+    - 100035.bio
+    - 100039.bio
+```
+We use **scripts/train test split.py** to create train_id and test_id.
+Now we are ready to train models. Run **Training_pipeline**:
+```
+$python Training_pipeline.py -c ./configs/configs_i2b2.yaml
+```
+The checkpoint folder and log folder were created. We then run **Evaluation_pipeline**. An evlauation metrics is created.
+
+![image](https://user-images.githubusercontent.com/24928020/216153478-4e1c4324-310d-4ed3-912f-1eb19ee27451.png)
+
+Once we have a model, we can save if with **scripts/save final model.py**, and run **Prediction_pipeline**:
+```
+$python Prediction_pipeline.py -c ./configs/configs_i2b2.yaml
+```
+The predicted entities are saved to the outfile firectory:
+
+![image](https://user-images.githubusercontent.com/24928020/216155252-7352eb0a-8c34-464f-8a34-87e4ba291c66.png)
+
+
 
 

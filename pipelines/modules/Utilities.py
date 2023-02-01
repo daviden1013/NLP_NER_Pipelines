@@ -37,7 +37,7 @@ def word_tokenize(text:str) -> List:
 def Tokens_to_entities(token_df: pd.DataFrame, mode:str, label_varname:str, n_level:int) -> pd.DataFrame:
   """
   This method inputs a df of tokens
-  outputs a df of ['document_id', 'entity', 'start', 'end', label_varname, 'prob', 'conf']
+  outputs a df of ['document_id', 'start', 'end', label_varname, 'prob', 'conf']
 
   Parameters
   ----------
@@ -52,7 +52,7 @@ def Tokens_to_entities(token_df: pd.DataFrame, mode:str, label_varname:str, n_le
   Returns
   -------
   out :  pd.DataFrame
-   Entity list. df of ['document_id', 'entity', 'start', 'end', label_varname, ('prob', 'conf')]
+   Entity list. df of ['document_id', 'start', 'end', label_varname, ('prob', 'conf')]
 
   """
   assert mode in {'BIO', 'IO'}, "mode must be one of {'BIO', 'IO'}"

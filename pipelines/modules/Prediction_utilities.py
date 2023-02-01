@@ -11,12 +11,21 @@ from tqdm import tqdm
 
 
 class Data_holder:
-  def __init__(self, doc_dict: Dict, label_map:Dict):
+  def __init__(self, doc_dict: Dict[str, str], label_map:Dict[str, int]):
+    """ 
+    This class holds the input document as dict {document_id:content}
+    Creates word tokens (BIO) and feed NER predictor
+    It also handles outputs and make predicted tokens into entity
+    """
     self.doc_dict = doc_dict
     self.label_map = label_map
+    """ Create BIO dict {document_id:list of word tokens} """
     self.bio = {}
     for doc_id, txt in self.doc_dict.items():
       self.bio[doc_id] = word_tokenize(txt)
+  
+  def _get_entity_text(self, document_id:str, start:int, end:int) -> str:
+    return self.doc_dict[document_id][start:end]
   
   def Predict_to_entity(self, token_pred_df: pd.DataFrame, mode:str) -> pd.DataFrame:
     """
@@ -49,9 +58,12 @@ class Data_holder:
     token_pred_df = token_pred_df[['pred', 'prob']]
     token_pred_df.reset_index(inplace=True)
     
-    return Tokens_to_entities(token_df=token_pred_df, mode=mode, 
-                              label_varname=label_varname, n_level=len(label_map))
-
+    entity = Tokens_to_entities(token_df=token_pred_df, mode=mode, 
+                              label_varname='pred', n_level=len(self.label_map))
+    
+    entity['entity'] = entity.apply(lambda df:self._get_entity_text(df.document_id, df.start, df.end), axis=1)
+    return entity
+  
 
 class NER_Dataset(Dataset):
   def __init__(self, 

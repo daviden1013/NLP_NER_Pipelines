@@ -55,6 +55,7 @@ def Tokens_to_entities(token_df: pd.DataFrame, mode:str, label_varname:str, n_le
    Entity list. df of ['document_id', 'entity', 'start', 'end', label_varname, ('prob', 'conf')]
 
   """
+  assert mode in {'BIO', 'IO'}, "mode must be one of {'BIO', 'IO'}"
   if mode == 'BIO':
     entity_chunk = (token_df[label_varname].str.match('^B-|^O')).cumsum()
   else:

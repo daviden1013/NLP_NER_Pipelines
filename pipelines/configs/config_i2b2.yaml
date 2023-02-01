@@ -1,0 +1,78 @@
+---
+  run_name: run1
+  ########################
+  # BIO processing parameters
+  ########################
+  # directory for original text
+  txt_dir: E:\David projects\ADE medication NER\data\text
+  # directory for annotated files
+  ann_dir: E:\David projects\ADE medication NER\data\ann
+  # directory for IO/BIO files
+  BIO_dir: E:\David projects\ADE medication NER\BIO
+  # mode, either IO or BIO
+  BIO_mode: BIO
+  ########################
+  # Model fine-tune parameters
+  ########################
+  # development set file path
+  deve_id_file: E:\David projects\ADE medication NER\train_test_id\train_id
+  # ratio of validation set. Will be sampled from development set
+  valid_ratio: 0.2
+  # Define entity labels and category numbers
+  label_map: 
+    O: 0
+    B-Drug: 1
+    I-Drug: 2
+    B-Strength: 3
+    I-Strength: 4
+    B-Dosage: 5
+    I-Dosage: 6
+    B-Duration: 7
+    I-Duration: 8
+    B-Frequency: 9
+    I-Frequency: 10
+    B-Form: 11
+    I-Form: 12
+    B-Route: 13
+    I-Route: 14
+    B-Reason: 15
+    I-Reason: 16
+    B-ADE: 17
+    I-ADE: 18
+  # tokenizer path
+  tokenizer: E:\David projects\ADE medication NER\ClinicalBERT
+  # Word tokens to be included in a segment
+  word_token_length: 128
+  # step of sliding window for training instance creation
+  slide_steps: 32
+  # wordpiece tokens to include in a training instance
+  wordpiece_token_length: 256
+  # base NLP model file path
+  base_model: E:\David projects\ADE medication NER\ClinicalBERT
+  # learning rate
+  lr: 2.e-6
+  # n_ephoch
+  n_epochs: 30
+  # batch_size
+  batch_size: 32
+  # Output path
+  out_path: E:\David projects\ADE medication NER
+  ########################
+  # Evaluation parameters
+  ########################
+  # test set file path
+  test_id_file: E:\David projects\ADE medication NER\train_test_id\test_id
+  # checkpoint path
+  checkpoint_dir: E:\David projects\ADE medication NER\checkpoints\run1
+  # checkpoint filename to evaluate, or "best" to pull the checkpoint with min validation loss.
+  checkpoint: best
+  ########################
+  # Prediction parameters
+  ########################
+  # directory with documents to predict
+  predict_doc_dir: E:\David projects\ADE medication NER\data\text
+  # predict model
+  predict_model: E:\David projects\ADE medication NER\Production Model
+  # Output file
+  predict_outfile: E:\David projects\ADE medication NER\prediction.pickle
+  

@@ -8,7 +8,7 @@ import string
 import csv
 import json
 import xml.etree.ElementTree as ET
-from transformers import BertTokenizer
+from transformers import AutoTokenizer
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -398,7 +398,7 @@ class BIO_feeder:
 class NER_Dataset(Dataset):
   def __init__(self, 
                bios: Dict, 
-               tokenizer: BertTokenizer, 
+               tokenizer: AutoTokenizer, 
                label_map: Dict,
                word_seq_lenght: int=32, 
                step: int=10,
@@ -413,7 +413,7 @@ class NER_Dataset(Dataset):
     bios : Dict
       key=document_id, val=List(tuple) of bios. Must include columns: 
       TOKEN, START, END in correct order. LABEL is optional.
-    tokenizer : BertTokenizer
+    tokenizer : AutoTokenizer
       tokenizer
     label_map : Dict
       key=BIO tag, val=categorical code

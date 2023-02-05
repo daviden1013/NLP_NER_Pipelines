@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import string
 import csv
+import json
+import xml.etree.ElementTree as ET
 from transformers import BertTokenizer
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -136,6 +138,56 @@ class BIO_converter:
     This method iterate through all annotation files and output BIOs as csv format (.bio)
     """
     return NotImplemented
+
+
+class Label_studio_BIO_converter(BIO_converter):
+  def __init__(self, ann_file:str, BIO_dir:str, mode:str):
+    """
+    This class inputs an annotation files, outputs BIOs
+
+    Parameters
+    ----------
+    ann_file: str
+      annotation (JSON) file
+    BIO_dir : str
+      Directory of BIO files 
+    mode : str
+      choice of {'BIO', 'IO'} for output
+    """
+    self.ann_file = ann_file
+    self.BIO_dir = BIO_dir
+    assert mode in {'BIO', 'IO'}, "mode must be one of {'BIO', 'IO'}"
+    self.mode = mode
+  
+  def parse_annotation(self, ann:dict) -> Tuple[str, list]:
+    text = ann['data']['text']    
+    ann_list = [(r['id'], r['value']['labels'][0], r['value']['start'], r['value']['end']) for r in ann['annotations'][0]['result']]
+    return text, ann_list
+  
+  
+  def pop_BIO(self):
+    """
+    This method iterate through annotation files and create BIO
+    """
+    with open(self.ann_file, encoding='utf-8') as f:
+      annotation = json.loads(f.read())
+      
+    loop = tqdm(annotation, total=len(annotation), leave=True)
+    for anno in loop:
+      txt, ann = self.parse_annotation(anno)
+      
+      if self.mode == 'BIO':
+        bio_list = self._get_BIO(txt, ann)
+      else:
+        bio_list = self._get_IO(txt, ann)
+        
+      filename = f"{anno['data']['IncidentNumber']}.io"
+        
+      with open(os.path.join(self.BIO_dir, filename), 'w', newline='', encoding='utf-8') as file:
+        csv_out=csv.writer(file)
+        csv_out.writerow(['token','start','end','label'])
+        for row in bio_list:
+          csv_out.writerow(row)
 
 
 class MAE_BIO_converter(BIO_converter):

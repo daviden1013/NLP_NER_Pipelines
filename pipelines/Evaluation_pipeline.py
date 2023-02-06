@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-from typing import Dict
 import os
 import re
 import argparse
 from easydict import EasyDict
 import yaml
 import pandas as pd
-from sklearn import metrics
 import torch
-from transformers import BertTokenizer
+from transformers import AutoTokenizer
 from transformers import AutoModelForTokenClassification
 from modules.Training_utilities import BIO_feeder, NER_Dataset, evaluate_entity
 from modules.Prediction_utilities import NER_Predictor
@@ -32,7 +30,7 @@ def main():
   print(datetime.now())
   
   label_map = config['label_map']
-  tokenizer = BertTokenizer.from_pretrained(config['tokenizer'])
+  tokenizer = AutoTokenizer.from_pretrained(config['tokenizer'])
   """ load test_id """
   with open(config['test_id_file']) as f:
     lines = f.readlines()

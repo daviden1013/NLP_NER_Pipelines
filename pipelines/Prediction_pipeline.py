@@ -4,7 +4,7 @@ from easydict import EasyDict
 import pprint
 import yaml
 import os
-from transformers import BertTokenizer
+from transformers import AutoTokenizer
 from transformers import AutoModelForTokenClassification
 import torch.optim as optim
 from modules.Training_utilities import BIO_feeder, NER_Dataset
@@ -39,7 +39,7 @@ def main():
   """ Make Data holder """
   label_map = config['label_map']
   holder = Data_holder(doc_dict, label_map)
-  tokenizer = BertTokenizer.from_pretrained(config['predict_model'])
+  tokenizer = AutoTokenizer.from_pretrained(config['predict_model'])
   
   """ Load model """
   model = AutoModelForTokenClassification.from_pretrained(config['predict_model'], num_labels=len(label_map))

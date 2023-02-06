@@ -2,7 +2,7 @@
 from typing import List, Dict
 import string
 import pandas as pd
-from transformers import BertTokenizer
+from transformers import AutoTokenizer
 import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoModelForTokenClassification
@@ -68,7 +68,7 @@ class Data_holder:
 class NER_Dataset(Dataset):
   def __init__(self, 
                bios: Dict, 
-               tokenizer: BertTokenizer, 
+               tokenizer: AutoTokenizer, 
                label_map: Dict,
                word_seq_lenght: int=32, 
                step: int=10,
@@ -82,7 +82,7 @@ class NER_Dataset(Dataset):
     bios : Dict
       key=document_id, val=List(tuple) of bios. Must include columns: 
       TOKEN, START, END in correct order. LABEL is optional.
-    tokenizer : BertTokenizer
+    tokenizer : AutoTokenizer
       tokenizer
     label_map : Dict
       key=BIO tag, val=categorical code
@@ -160,7 +160,7 @@ class NER_Dataset(Dataset):
 class NER_Predictor:
   def __init__(self, 
                model:AutoModelForTokenClassification,
-               tokenizer:BertTokenizer, 
+               tokenizer:AutoTokenizer, 
                dataset: Dataset,
                label_map:Dict,
                batch_size:int):

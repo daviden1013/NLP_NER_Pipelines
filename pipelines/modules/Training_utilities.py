@@ -467,15 +467,15 @@ class NER_Dataset(Dataset):
       tokens = self.tokenizer.tokenize(word[0])
       if len(tokens) == 0:
         continue
-      input_ids = self.tokenizer.encode(tokens, add_special_tokens=False)
+      input_ids = self.tokenizer(tokens, add_special_tokens=False)['input_ids'][0]
       
       out['input_ids'].extend(input_ids)
-      out['attention_mask'].extend([1]*len(tokens))
-      out['start'].extend([word[1]]*len(tokens))
-      out['end'].extend([word[2]]*len(tokens))
+      out['attention_mask'].extend([1]*len(input_ids))
+      out['start'].extend([word[1]]*len(input_ids))
+      out['end'].extend([word[2]]*len(input_ids))
       if self.has_label:
         label_code = self.label_map[word[3]] if word[3] in self.label_map else other_label
-        out['labels'].extend([label_code]*len(tokens))
+        out['labels'].extend([label_code]*len(input_ids))
       
     # truncate or padding to make token lenght = self.token_seq_length
     if len(out['input_ids']) > self.token_seq_length:
@@ -607,6 +607,9 @@ def evaluate_entity(pred:pd.DataFrame, gold:pd.DataFrame) -> pd.DataFrame:
   Outputs a dataframe of counts, exact and partial P, R, F1.
   """
   def F1(p, r):
+    if p+r == 0:
+      return float('nan')
+    
     return 2*p*r/(p+r)
 
   df = pd.merge(pred, gold, left_on=['document_id', 'pred'], right_on=['document_id', 'label'], 

@@ -231,7 +231,7 @@ class MAE_BIO_converter(BIO_converter):
                  if os.path.isfile(os.path.join(self.ann_dir, f)) and f[-4:] == '.xml'])
     loop = tqdm(ann_files, total=len(ann_files), leave=True)
     for ann_file in loop:
-      txt, ann = self.parse_annotation(ann_file)
+      txt, ann = self.parse_annotation(os.path.join(self.ann_dir, ann_file))
       
       if self.mode == 'BIO':
         bio_list = self._get_BIO(txt, ann)

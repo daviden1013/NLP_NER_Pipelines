@@ -464,18 +464,14 @@ class NER_Dataset(Dataset):
       out['labels'] = []
     
     for word in word_seq:
-      tokens = self.tokenizer.tokenize(word[0])
-      if len(tokens) == 0:
-        continue
-      input_ids = self.tokenizer(tokens, add_special_tokens=False)['input_ids'][0]
-      
-      out['input_ids'].extend(input_ids)
-      out['attention_mask'].extend([1]*len(input_ids))
-      out['start'].extend([word[1]]*len(input_ids))
-      out['end'].extend([word[2]]*len(input_ids))
+      token = self.tokenizer(word[0], add_special_tokens=False)
+      out['input_ids'].extend(token['input_ids'])
+      out['attention_mask'].extend(token['attention_mask'])
+      out['start'].extend([word[1]]*len(token['input_ids']))
+      out['end'].extend([word[2]]*len(token['input_ids']))
       if self.has_label:
-        label_code = self.label_map[word[3]] if word[3] in self.label_map else other_label
-        out['labels'].extend([label_code]*len(input_ids))
+        label_code = self.label_map[word[3]]
+        out['labels'].extend([label_code]*len(token['input_ids']))
       
     # truncate or padding to make token lenght = self.token_seq_length
     if len(out['input_ids']) > self.token_seq_length:

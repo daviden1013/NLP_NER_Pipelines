@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 PATH = r'E:\David projects\ADE medication NER'
 
-from transformers import BertTokenizer
-tokenizer = BertTokenizer.from_pretrained('emilyalsentzer/Bio_ClinicalBERT')
+import os
+
+from transformers import AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained('emilyalsentzer/Bio_ClinicalBERT')
 tokenizer.save_pretrained(os.path.join(PATH, 'ClinicalBERT'))
 
 from transformers import AutoModelForTokenClassification

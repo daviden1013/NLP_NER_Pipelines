@@ -184,7 +184,7 @@ We then run **Evaluation_pipeline**. An evlauation metrics is created.
 $python Evaluation_pipeline.py -c ./configs/configs_i2b2.yaml
 ```
 
-![image](https://user-images.githubusercontent.com/24928020/217161216-6bde3821-c1c4-45de-befa-7be3bd0571e9.png)
+![image](https://user-images.githubusercontent.com/24928020/217161343-1354e890-63c6-4c7b-afae-2b3863416c6a.png)
 
 
 Once we have a model, we can save if with **scripts/save final model.py**, and run **Prediction_pipeline**:

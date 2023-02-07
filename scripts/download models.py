@@ -8,5 +8,6 @@ tokenizer = AutoTokenizer.from_pretrained('emilyalsentzer/Bio_ClinicalBERT')
 tokenizer.save_pretrained(os.path.join(PATH, 'ClinicalBERT'))
 
 from transformers import AutoModelForTokenClassification
-base_model = AutoModelForTokenClassification.from_pretrained('emilyalsentzer/Bio_ClinicalBERT', num_labels=19)
+num_labels = 11
+base_model = AutoModelForTokenClassification.from_pretrained('emilyalsentzer/Bio_ClinicalBERT', num_labels=num_labels)
 base_model.save_pretrained(os.path.join(PATH, 'ClinicalBERT'))

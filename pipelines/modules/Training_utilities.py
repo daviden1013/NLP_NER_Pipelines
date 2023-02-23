@@ -161,11 +161,11 @@ class Label_studio_BIO_converter(BIO_converter):
   
   def parse_annotation(self, ann:dict) -> Tuple[str, list]:
     text = ann['data']['text']    
-    ann_list = [(r['id'], r['value']['labels'][0], r['value']['start'], r['value']['end']) for r in ann['annotations'][0]['result']]
+    ann_list = [(r['id'], r['value']['labels'][0], r['value']['start'], r['value']['end']) for r in ann['annotations'][0]['result'] if r['type']=='labels']
     return text, ann_list
   
   
-  def pop_BIO(self):
+  def pop_BIO(self, doc_id: str):
     """
     This method iterate through annotation files and create BIO
     """
@@ -181,7 +181,7 @@ class Label_studio_BIO_converter(BIO_converter):
       else:
         bio_list = self._get_IO(txt, ann)
         
-      filename = f"{anno['data']['IncidentNumber']}.io"
+      filename = f"{anno['data'][doc_id]}.io"
         
       with open(os.path.join(self.BIO_dir, filename), 'w', newline='', encoding='utf-8') as file:
         csv_out=csv.writer(file)

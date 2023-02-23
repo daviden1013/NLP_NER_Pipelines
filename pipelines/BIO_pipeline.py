@@ -25,7 +25,7 @@ def main():
                                         BIO_dir=config['BIO_dir'],
                                         mode=config['BIO_mode'])
   
-  converter.pop_BIO()
+  converter.pop_BIO(doc_id=config['document_id'])
 
 if __name__ == '__main__':
   main()

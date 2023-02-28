@@ -3,7 +3,7 @@ This is a general NER toolkit for BERT model training, evaluation, and predictio
 
 Framework: **PyTorch**, **Transformers**
 
-Annotation tool: **BRAT**
+Compatible annotation tools: **Label-studio**, **MAE**, **BRAT**
 
 ![alt text](https://github.com/daviden1013/NLP_NER_Pipelines/blob/main/Pipelines%20diagram.png)
 

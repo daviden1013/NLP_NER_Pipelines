@@ -109,6 +109,10 @@ def main():
     os.makedirs(eval_dir)
     
   evaluation = evaluate_entity(entity_pred, entity_gold)
+  if config['output_predictions']:
+    entity_pred.to_pickle(os.path.join(eval_dir, f"{config['run_name']} entity_pred.pickle"))
+    entity_gold.to_pickle(os.path.join(eval_dir, f"{config['run_name']} entity_gold.pickle"))
+  
   evaluation.to_csv(os.path.join(eval_dir, f"{config['run_name']} evaluation.csv"), index=False)
   
 

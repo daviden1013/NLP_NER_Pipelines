@@ -612,7 +612,8 @@ def evaluate_entity(pred:pd.DataFrame, gold:pd.DataFrame) -> pd.DataFrame:
                 how='inner', suffixes=['_pred', '_gold'])
   df['exact'] = (df['start_pred'] == df['start_gold']) & (df['end_pred'] == df['end_gold'])
   df['partial'] = ~((df['end_pred'] < df['start_gold']) | (df['start_pred'] > df['end_gold']))
-  match = df.groupby('label').agg({'exact':'sum', 'partial':'sum'})
+  df = df.groupby(['document_id', 'start_pred', 'end_pred']).agg({'label':'max', 'exact':'max', 'partial':'max'})
+  match = df.groupby(['label']).agg({'exact':'sum', 'partial':'sum'})
   g_freq = gold['label'].value_counts().reset_index().rename(columns={'index':'label', 'label':'gold'})
   p_freq = pred['pred'].value_counts().reset_index().rename(columns={'index':'label'})
   

@@ -181,7 +181,7 @@ class NER_Predictor:
                  'start':[],
                  'end':[]}
     for tag in self.label_map.keys():
-      token_pred[tag] = []
+      token_pred[f'prob_{tag}'] = []
     
     loop = tqdm(enumerate(self.dataloader), total=len(self.dataloader), leave=True)
     for i, ins in loop:  
@@ -189,30 +189,18 @@ class NER_Predictor:
       attention_mask = ins['attention_mask'].to(self.device)
       with torch.no_grad():
         p = self.model(input_ids=input_ids, attention_mask=attention_mask)
-        pred = p.logits
-        for b in range(pred.shape[0]):
-          # token info
+        prob = p.logits.softmax(dim=-1)
+        for b in range(prob.shape[0]):
           token_pred['document_id'].extend([i[b] for i in ins['document_id']])
           token_pred['input_ids'].extend(ins['input_ids'][b].cpu().tolist())
           token_pred['start'].extend(ins['start'][b].cpu().tolist())
           token_pred['end'].extend(ins['end'][b].cpu().tolist())
             
-          # predicted logits for each level
           for tag, code in self.label_map.items():
-            token_pred[tag].extend(pred[b,:,code].cpu().tolist())
-            
+            token_pred[f'prob_{tag}'].extend(prob[b,:,code].cpu().tolist())
+         
     token_pred_df = pd.DataFrame(token_pred)
     token_pred_df = token_pred_df.loc[token_pred_df['start'] != -1]
-
-    # convert logit to probability
-    minimum_logit = token_pred_df[self.label_map.keys()].min(axis=1)
-    for tag in self.label_map.keys():
-      token_pred_df[tag] = token_pred_df[tag] - minimum_logit
-      
-    sum_logit = token_pred_df[self.label_map.keys()].sum(axis=1)
-    for tag in self.label_map.keys():
-      token_pred_df[tag] = token_pred_df[tag]/sum_logit
-      
     token_pred_df.rename(columns={tag:f'prob_{tag}' for tag in self.label_map.keys()}, inplace=True)
     return token_pred_df
   

@@ -125,15 +125,11 @@ class NER_Dataset(Dataset):
            'end':[]}
     
     for word in word_seq:
-      tokens = self.tokenizer.tokenize(word[0])
-      if len(tokens) == 0:
-        continue
-      input_ids = self.tokenizer.encode(tokens, add_special_tokens=False)
-      
-      out['input_ids'].extend(input_ids)
-      out['attention_mask'].extend([1]*len(tokens))
-      out['start'].extend([word[1]]*len(tokens))
-      out['end'].extend([word[2]]*len(tokens))
+      token = self.tokenizer(word[0], add_special_tokens=False)
+      out['input_ids'].extend(token['input_ids'])
+      out['attention_mask'].extend(token['attention_mask'])
+      out['start'].extend([word[1]]*len(token['input_ids']))
+      out['end'].extend([word[2]]*len(token['input_ids']))
       
     # truncate or padding to make token lenght = self.token_seq_length
     if len(out['input_ids']) > self.token_seq_length:

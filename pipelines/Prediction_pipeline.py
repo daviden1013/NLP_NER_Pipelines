@@ -65,6 +65,7 @@ def main():
   
   """ Get predicted entity """
   entities = holder.Predict_to_entity(token_pred_df, mode=config['BIO_mode'])
+  entities['entity_id'] = entities.apply(lambda x:f'{x.document_id}_{x.start}_{x.end}', axis=1)
 
   """ Save """
   entities.to_pickle(config['predict_outfile'])

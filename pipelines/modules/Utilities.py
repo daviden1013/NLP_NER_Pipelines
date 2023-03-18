@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import abc
 from typing import List, Dict
 import pandas as pd
 import string
+import json
 
 def word_tokenize(text:str) -> List:
   """
@@ -80,3 +82,70 @@ def Tokens_to_entities(token_df: pd.DataFrame, mode:str, label_varname:str, n_le
     entity = entity.loc[entity[label_varname] != 'O']
     entity[label_varname] = entity[label_varname].str.replace('B-', '').str.replace('I-', '')
     return entity.reindex(['document_id', 'start', 'end', label_varname], axis=1)
+  
+
+class Label_studio_preannotator:
+  def __init__(self, docs:pd.DataFrame, DOC_ID:str):
+    """
+    This class inputs a DataFrame of documents (should have document_id, text, 
+    and any columns that want to import to Label studio). Outputs a JSON with 
+    preannotations that meets Label studio's import format. 
+
+    Parameters
+    ----------
+    docs : pd.DataFrame
+      DataFrame with documents
+    DOC_ID : str
+      column name for document id
+    """
+    assert 'text' in docs.columns, 'A "text" column with document content is required.'
+    self.docs = docs
+    self.DOC_ID = DOC_ID
+    self.ann = {}
+    
+  @abc.abstractmethod  
+  def pre_annotate(self):
+    """
+    This method annotate the documents with algorithm (e.g., keyword matching)
+    Outputs a dict of annotation self.ann
+      {document_id:[{start, end, text, [labels]}]}
+    """
+    return NotImplemented
+  
+    
+  def get_JSON(self, cols:List[str]=None) -> str:
+    """ 
+    This method 
+    """
+    if cols == None:
+      cols = self.docs.columns
+    elif 'text' not in cols:
+      cols.append('text')
+    
+    out = []
+    for r in self.docs.itertuples():
+      data = {c:getattr(r, c) for c in cols}
+      ann = self.ann[getattr(r, self.DOC_ID)]
+      
+      results = []
+      for i, a in enumerate(ann): 
+        res = {"id": f"{getattr(r, self.DOC_ID)}_{i}",
+               "from_name": "label",
+               "to_name": "text",
+               "type": "labels",
+               "value": {
+                  "start": a['start'],
+                  "end": a['end'],
+                  "text": a['text'],
+                  "labels": a['labels']}
+              }
+        results.append(res)
+      
+      pred = {"model_version": "one",
+              "result": results}
+      
+      out.append({'data':data, 'predictions':[pred]})
+     
+    return json.dumps(out)
+
+    

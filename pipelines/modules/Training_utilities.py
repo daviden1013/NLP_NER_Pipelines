@@ -181,7 +181,7 @@ class Label_studio_BIO_converter(BIO_converter):
       else:
         bio_list = self._get_IO(txt, ann)
         
-      filename = f"{anno['data'][doc_id]}.io"
+      filename = f"{anno['data'][doc_id]}.{self.mode.lower()}"
         
       with open(os.path.join(self.BIO_dir, filename), 'w', newline='', encoding='utf-8') as file:
         csv_out=csv.writer(file)

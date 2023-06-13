@@ -298,20 +298,18 @@ class BRAT_BIO_converter(BIO_converter):
     """
     This method iterate through annotation files and create BIO
     """
-    txt_files = sorted([f for f in os.listdir(self.txt_dir) 
-                 if os.path.isfile(os.path.join(self.txt_dir, f)) and f[-4:] == '.txt'])
-    ann_files = sorted([f for f in os.listdir(self.ann_dir) 
+    files = sorted([f.replace('.ann', '') for f in os.listdir(self.ann_dir) 
                  if os.path.isfile(os.path.join(self.ann_dir, f)) and f[-4:] == '.ann'])
-    loop = tqdm(zip(txt_files, ann_files), total=len(ann_files), leave=True)
-    for txt_file, ann_file in loop:
-      txt, ann = self.parse_annotation(txt_file, ann_file)
+    loop = tqdm(files, total=len(files), leave=True)
+    for file in loop:
+      txt, ann = self.parse_annotation(f'{file}.txt', f'{file}.ann')
       
       if self.mode == 'BIO':
         bio_list = self._get_BIO(txt, ann)
-        filename = ann_file.replace('.ann', '.bio')
+        filename = f'{file}.bio'
       else:
         bio_list = self._get_IO(txt, ann)
-        filename = ann_file.replace('.ann', '.io')
+        filename = f'{file}.io'
         
       with open(os.path.join(self.BIO_dir, filename), 'w', newline='', encoding='utf-8') as file:
         csv_out=csv.writer(file)
